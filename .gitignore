@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# Raw ENTSO-E exports are large; keep them out of version control.
+data/DE_LU_generation_*.csv
+data/DE_LU_day_ahead_prices_*.csv
+data/DE_LU_total_load_*.csv
