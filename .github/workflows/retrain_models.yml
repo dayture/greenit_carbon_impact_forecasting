@@ -1,0 +1,42 @@
+name: Retrain models (manual)
+
+# Deliberately NOT on a schedule - hyperparameter search + training for
+# 24 horizons is expensive and the underlying patterns don't shift fast
+# enough to need it more than occasionally. Trigger by hand from the
+# Actions tab when you want to refresh the models (e.g. monthly, or
+# after enough new data has accumulated).
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pandas numpy xgboost scikit-learn matplotlib entsoe-py python-dotenv
+
+      - name: Run hyperparameter search
+        run: python scripts/hyperparameter_search.py
+
+      - name: Train + evaluate models
+        run: python scripts/model.py
+
+      - name: Commit updated models and results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add models/ data/
+          git diff --cached --quiet || git commit -m "Retrain models [skip ci]"
+          git push
